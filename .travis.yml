@@ -1,0 +1,22 @@
+sudo : required
+services:
+  - docker
+
+before_install:
+  - docker build -t akushwah/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true akushwah/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t akushwah/multi-client ./client
+  - docker build -t akushwah/multi-nginx ./nginx
+  - docker build -t akushwah/multi-server ./server
+  - docker build -t akushwah/multi-worker ./worker
+  #take images and push to docker hub
+  #login to docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push akushwah/multi-client
+  - docker push akushwah/multi-nginx
+  - docker push akushwah/multi-server
+  - docker push akushwah/multi-worker
